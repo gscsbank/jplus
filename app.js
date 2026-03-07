@@ -1770,6 +1770,9 @@ window.deleteProduct = async function (id) {
                 await logAuditAction("DELETE_PRODUCT", `Deleted product '${product.name}' (Barcode: ${product.barcode}). Final Stock: ${product.stock}`);
             }
             await db.products.delete(id);
+            // Sync deletion to cloud
+            if (typeof syncDelete === 'function') await syncDelete('products', id);
+
             await loadProducts();
             renderInventory();
             if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-pos') {
@@ -2466,6 +2469,9 @@ window.deleteActivity = async function (id) {
             await logAuditAction("DELETE_ACTIVITY", `Deleted Activity #${id} (${log.type} - Rs. ${log.amount}: ${log.reason})`);
         }
         await db.cashLogs.delete(id);
+        // Sync deletion to cloud
+        if (typeof syncDelete === 'function') await syncDelete('cashLogs', id);
+
         renderDashboard();
         if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-recent-activity') renderRecentActivityTab();
     } catch (err) {
@@ -2663,11 +2669,13 @@ window.deleteExpense = async function (id) {
 
         // Remove from expenses
         await db.expenses.delete(id);
+        if (typeof syncDelete === 'function') await syncDelete('expenses', id);
 
         // Remove from cash logs
         const logs = await db.cashLogs.where('refTable').equals('expenses').and(l => l.refId === id).toArray();
         for (const log of logs) {
             await db.cashLogs.delete(log.id);
+            if (typeof syncDelete === 'function') await syncDelete('cashLogs', log.id);
         }
 
         renderExpenses();
@@ -2959,6 +2967,7 @@ window.deleteHeldBill = async function (id) {
     const confirmed = await showConfirm("Delete Stored Bill?", "Delete this stored bill permanently?");
     if (confirmed) {
         await db.heldBills.delete(id);
+        if (typeof syncDelete === 'function') await syncDelete('heldBills', id);
         renderHeldBills();
         updateHeldBillsCount();
     }
@@ -3020,6 +3029,7 @@ window.deleteSupplier = async function (id) {
             await logAuditAction("DELETE_SUPPLIER", `Deleted supplier '${s.name}' (#${s.id})`);
         }
         await db.suppliers.delete(id);
+        if (typeof syncDelete === 'function') await syncDelete('suppliers', id);
         renderSuppliers();
     } catch (err) {
         console.error(err);
@@ -3783,6 +3793,22 @@ async function pullRemoteChanges() {
             console.error(`Firestore Listener Error (${table}):`, err);
         });
     });
+}
+
+/**
+ * Sync deletion to Firestore
+ * @param {string} table 
+ * @param {any} id 
+ */
+async function syncDelete(table, id) {
+    if (typeof firestore === 'undefined') return;
+    try {
+        const docId = id.toString();
+        await firestore.collection(table).doc(docId).delete();
+        console.log(`Cloud Sync: Deleted item ${docId} from ${table}`);
+    } catch (err) {
+        console.error(`Cloud Sync Deletion Error (${table}):`, err);
+    }
 }
 
 function refreshUIForTable(table) {
