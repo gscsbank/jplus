@@ -741,22 +741,37 @@ function setupNavigation() {
 
 // ---------------- MOBILE NAVIGATION LOGIC ---------------- //
 function setupMobileNavigation() {
-    if (!elements.mobileMenuBtn) return;
+    console.log("Setting up mobile navigation...");
+
+    // Re-query to be safe
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const overlay = document.getElementById('sidebar-overlay');
+    const sidebar = document.getElementById('app-sidebar');
+
+    if (!menuBtn || !overlay || !sidebar) {
+        console.warn("Mobile navigation elements not found in DOM");
+        return;
+    }
 
     const toggleSidebar = () => {
-        elements.appSidebar.classList.toggle('mobile-active');
-        elements.sidebarOverlay.classList.toggle('active');
+        sidebar.classList.toggle('mobile-active');
+        overlay.classList.toggle('active');
+        console.log("Sidebar toggled:", sidebar.classList.contains('mobile-active'));
     };
 
-    elements.mobileMenuBtn.addEventListener('click', toggleSidebar);
-    elements.sidebarOverlay.addEventListener('click', toggleSidebar);
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
+
+    overlay.addEventListener('click', toggleSidebar);
 
     // Close sidebar when a nav button is clicked on mobile
     elements.navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             if (window.innerWidth <= 640) {
-                elements.appSidebar.classList.remove('mobile-active');
-                elements.sidebarOverlay.classList.remove('active');
+                sidebar.classList.remove('mobile-active');
+                overlay.classList.remove('active');
             }
         });
     });
