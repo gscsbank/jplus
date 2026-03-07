@@ -669,9 +669,6 @@ window.initApp = async () => {
     }
 };
 
-// Expose initApp so auth system can call it after login
-window.initApp = initApp;
-
 // Boot: setup login screen first
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -3757,6 +3754,3 @@ function refreshUIForTable(table) {
             break;
     }
 }
-
-// Initialize the login screen on load
-setupLoginScreen();
