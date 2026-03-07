@@ -3613,12 +3613,6 @@ function renderAuditReportToPrint(title, data, from, to) {
     window.print();
     document.body.classList.remove('report-mode');
 }
-const tableNames = [
-    'products', 'sales', 'credits', 'billPayments', 'customers',
-    'cashLogs', 'expenses', 'printJobs', 'suppliers',
-    'supplierTransactions', 'heldBills', 'auditLogs'
-];
-
 // ---------------- CLOUD SYNC ENGINE (Firebase) ---------------- //
 // This engine handles two-way real-time synchronization between Dexie (Local) and Firestore (Cloud)
 
