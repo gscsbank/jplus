@@ -1,0 +1,335 @@
+/* Super Finti Design System */
+:root {
+    --primary-bg: #f8fafc;
+    --sidebar-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --accent-purple: #6366f1;
+    --accent-indigo: #4f46e5;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    --border-radius: 2rem;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+
+    /* Gradients */
+    --grad-purple: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --grad-blue: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    --grad-green: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    --grad-orange: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+/* Base Adjustments */
+body {
+    background-color: var(--primary-bg) !important;
+    color: var(--text-main) !important;
+}
+
+/* Sidebar Styling */
+aside.w-64 {
+    background: var(--sidebar-bg) !important;
+    border-right: 1px solid #e2e8f0;
+    color: var(--text-main) !important;
+    width: 280px !important;
+    padding: 2rem 1rem !important;
+}
+
+.nav-btn {
+    border-radius: 1rem !important;
+    margin-bottom: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+/* Used by applyAccessControl() to hide tabs from non-owner accounts */
+.staff-hidden {
+    display: none !important;
+}
+
+.nav-btn.active {
+    background: var(--accent-indigo) !important;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3) !important;
+}
+
+.nav-btn:not(.active):hover {
+    background: #f1f5f9 !important;
+    color: var(--accent-indigo) !important;
+}
+
+/* Dashboard Cards */
+.dash-card {
+    border-radius: var(--border-radius) !important;
+    border: 1px solid rgba(241, 245, 249, 0.8) !important;
+    box-shadow: var(--card-shadow) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: white;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--card-shadow-hover) !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+/* Glassmorphism Utility */
+.glass {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(12px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+/* Custom styles for specific cards to match Super Finti */
+.card-gradient-purple {
+    background: var(--grad-purple) !important;
+    color: white !important;
+}
+
+.card-gradient-blue {
+    background: var(--grad-blue) !important;
+    color: white !important;
+}
+
+.card-gradient-green {
+    background: var(--grad-green) !important;
+    color: white !important;
+}
+
+/* Help Card in Sidebar */
+.sidebar-help {
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    margin-top: auto;
+    text-align: center;
+    border: 1px solid #fde68a;
+}
+
+/* Fix print layout for 58mm thermal printers */
+#print-area {
+    display: none;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    body>aside,
+    body>main,
+    #main-app,
+    #login-screen,
+    .modal {
+        display: none !important;
+    }
+
+    #print-area {
+        display: block !important;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        color: #000;
+        background: #fff;
+    }
+
+    /* Receipt mode (Thermal 58mm) */
+    .receipt-mode {
+        width: 58mm !important;
+    }
+
+    .receipt-mode #print-area {
+        width: 58mm;
+        margin: 0 auto;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 10pt;
+    }
+
+    /* Report mode (A4 Optimized Density) */
+    .report-mode #print-area {
+        width: 100%;
+        max-width: 210mm;
+        margin: 0 auto;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Ensure tables don't break awkwardly */
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+}
+
+/* Receipt mode (Thermal 58mm) fallback if needed */
+.receipt-mode #print-area {
+    width: 58mm;
+    margin: 0 auto;
+}
+
+/* Custom Scrollbar for the app */
+.custom-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+
+/* Toast Animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%) scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOutRight {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%) scale(0.9);
+        opacity: 0;
+    }
+}
+
+.toast-in {
+    animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-out {
+    animation: fadeOutRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-shadow {
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Modal specific styles */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal.flex:not(.hidden) {
+    display: flex;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Tab visibility */
+.tab-pane.hidden {
+    display: none !important;
+}
+
+/* Item hover styles */
+.product-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.product-card:active {
+    transform: scale(0.96);
+}
+
+.product-card.low-stock {
+    box-shadow: 0 0 0 2px #f87171 inset;
+}
+
+.product-card .price-tag {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    letter-spacing: -0.025em;
+}
+
+.product-card .stock-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+}
+
+/* Keyboard Navigation Highlighting */
+.kb-selected {
+    outline: 3px solid #6366f1 !important;
+    outline-offset: -2px;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4) !important;
+    z-index: 10;
+    transition: all 0.15s ease-in-out;
+}

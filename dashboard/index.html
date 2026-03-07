@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Finti - Modern Fintech Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <span>Super Finti</span>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-label">Main Navigation</span>
+            <a href="#" class="nav-item active">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-address-book"></i>
+                <span>Contacts</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-shapes"></i>
+                <span>Features</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-book"></i>
+                <span>Library</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-label">Settings & Schedules</span>
+            <a href="#" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>Base Wallet</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user-friends"></i>
+                <span>My Contacts</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Invoices</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Schedules</span>
+            </a>
+        </div>
+
+        <div class="help-card">
+            <div class="help-icon">?</div>
+            <h4>Help Center</h4>
+            <p>Having trouble in Finti, please contact us for more questions.</p>
+            <button class="help-btn">Go To Help Center</button>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <header>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search..">
+            </div>
+            <div class="header-right">
+                <div class="icon-btns">
+                    <i class="far fa-copy"></i>
+                    <i class="far fa-envelope"></i>
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+                <div class="nav-links">
+                    <a href="#"
+                        style="text-decoration:none; color:var(--text-main); margin-right:20px; font-weight:600;">Wallet</a>
+                    <a href="#"
+                        style="text-decoration:none; color:var(--text-muted); margin-right:20px; font-weight:600;">Invoices</a>
+                </div>
+                <div class="user-profile">
+                    <span style="font-weight:600;">Hi, Shakir</span>
+                    <img src="https://ui-avatars.com/api/?name=Shakir&background=random" alt="User" class="user-img">
+                </div>
+            </div>
+        </header>
+
+        <section class="dashboard-grid">
+            <div class="card credit-card">
+                <div class="card-label">CARD NUMBER</div>
+                <div class="card-value">3829 4820 4629 5025</div>
+                <div style="margin-top:20px; display:flex; justify-content:space-between;">
+                    <div>
+                        <div class="card-label">CARD HOLDER NAME</div>
+                        <div style="font-weight:600; font-size:0.9rem;">Anita Rose</div>
+                    </div>
+                    <div>
+                        <div class="card-label">VALID THRU</div>
+                        <div style="font-weight:600; font-size:0.9rem;">09/17</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card saving-status" style="display:flex; align-items:center; gap:20px;">
+                <div style="flex:1;">
+                    <div class="card-label" style="margin-bottom:10px;">Your Saving Status</div>
+                    <div class="card-value" style="font-size:2rem;">4.28%</div>
+                    <div class="card-label">Your spending increased</div>
+                </div>
+                <div
+                    style="width:60px; height:60px; background:rgba(255,255,255,0.2); border-radius:15px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-box-open" style="font-size:1.5rem;"></i>
+                </div>
+            </div>
+
+            <div class="card working-balance">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <div class="card-label">Your Working Balance</div>
+                        <div class="card-value" style="font-size:2rem; margin-top:20px;">PKR 9,250,000</div>
+                    </div>
+                    <div
+                        style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:20px;">
+                        Saving Account
+                    </div>
+                </div>
+                <div style="margin-top:15px; font-size:0.8rem; text-align:right;">PKR <i
+                        class="fas fa-chevron-down"></i></div>
+            </div>
+        </section>
+
+        <section class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Spending By Week</div>
+                    <div class="chart-trend trend-up">210k <i class="fas fa-arrow-up"></i></div>
+                </div>
+                <div class="bar-container">
+                    <div class="bar" style="height: 40%"></div>
+                    <div class="bar" style="height: 70%"></div>
+                    <div class="bar active" style="height: 100%"></div>
+                    <div class="bar" style="height: 60%"></div>
+                    <div class="bar" style="height: 80%"></div>
+                    <div class="bar" style="height: 30%"></div>
+                    <div class="bar" style="height: 50%"></div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Savings</div>
+                    <div class="chart-trend trend-up">185k <i class="fas fa-arrow-up"></i></div>
+                </div>
+                <div class="bar-container">
+                    <div class="bar" style="height: 30%"></div>
+                    <div class="bar" style="height: 50%"></div>
+                    <div class="bar" style="height: 40%"></div>
+                    <div class="bar active" style="height: 90%; background: #6c5ce7;"></div>
+                    <div class="bar" style="height: 70%"></div>
+                    <div class="bar" style="height: 30%"></div>
+                    <div class="bar" style="height: 20%"></div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Credit Card Spendings</div>
+                    <div class="chart-trend trend-up">124k <i class="fas fa-arrow-up"></i></div>
+                </div>
+                <div class="bar-container">
+                    <div class="bar" style="height: 50%"></div>
+                    <div class="bar" style="height: 40%"></div>
+                    <div class="bar" style="height: 60%"></div>
+                    <div class="bar active" style="height: 85%; background: #00b894;"></div>
+                    <div class="bar" style="height: 45%"></div>
+                    <div class="bar" style="height: 35%"></div>
+                    <div class="bar" style="height: 55%"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="transactions-grid">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>Latest Transactions</h3>
+                    <div style="display:flex; gap:15px; color:var(--text-muted);">
+                        <i class="fas fa-search"></i>
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                </div>
+                <div class="day-group">
+                    <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:10px;">Mon, Mar 1</p>
+                    <div class="transaction-item">
+                        <div class="item-left">
+                            <div class="icon-box"><i class="fas fa-arrow-right"></i></div>
+                            <div class="item-info">
+                                <div class="title">Payment Sent to Shakir</div>
+                                <div class="status">Successfully</div>
+                            </div>
+                        </div>
+                        <div class="item-amount neg">$560.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="item-left">
+                            <div class="icon-box"><i class="fas fa-arrow-left"></i></div>
+                            <div class="item-info">
+                                <div class="title">Salary from Redwhale</div>
+                                <div class="status">Successfully</div>
+                            </div>
+                        </div>
+                        <div class="item-amount pos">$12,200.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>Upcoming Transactions</h3>
+                    <a href="#" style="font-size:0.8rem; color:var(--text-muted); text-decoration:none;">View All</a>
+                </div>
+                <div class="day-group">
+                    <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:10px;">Today</p>
+                    <div class="transaction-item">
+                        <div class="item-left">
+                            <div class="icon-box" style="background:#6c5ce7; color:#fff;"><i class="fas fa-tint"></i>
+                            </div>
+                            <div class="item-info">
+                                <div class="title">Water Bill</div>
+                                <div class="status">Unsuccessfully</div>
+                            </div>
+                        </div>
+                        <div class="item-amount" style="color:#d63031;">- $280</div>
+                    </div>
+                </div>
+                <div class="day-group" style="margin-top:20px;">
+                    <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:10px;">Tomorrow</p>
+                    <div class="transaction-item">
+                        <div class="item-left">
+                            <div class="icon-box" style="background:#ff7675; color:#fff;"><i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="item-info">
+                                <div class="title">Electric Bill</div>
+                                <div class="status">Successfully</div>
+                            </div>
+                        </div>
+                        <div class="item-amount" style="color:#d63031;">- $480</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>
