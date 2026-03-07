@@ -3654,7 +3654,7 @@ async function startCloudSync() {
         syncStatusDiv.className = 'fixed bottom-4 right-4 z-[100] flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-100 rounded-full shadow-xl text-[10px] font-black uppercase tracking-widest text-slate-400 opacity-60 hover:opacity-100 transition-all cursor-pointer';
         syncStatusDiv.title = 'Click to force sync';
         syncStatusDiv.onclick = () => pushLocalChanges();
-        syncStatusDiv.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-300" id="sync-dot"></span> <span id="sync-text">Cloud Sync: Idle</span>`;
+        syncStatusDiv.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500" id="sync-dot"></span> <span id="sync-text">Cloud Sync: Connected</span>`;
         document.body.appendChild(syncStatusDiv);
     }
 
@@ -3734,7 +3734,9 @@ async function pushLocalChanges() {
             localStorage.setItem('jp_last_push_time', lastPushTime.toString());
             updateSyncStatus('Connected', 'bg-emerald-500');
             console.log("Cloud Sync: Push completed successfully.");
-            setTimeout(() => updateSyncStatus('Idle', 'bg-slate-300'), 2000);
+        } else {
+            // Even if no local changes, show connected if we reach here without error
+            updateSyncStatus('Connected', 'bg-emerald-500');
         }
     } catch (err) {
         console.error("Cloud Sync Push Error Detail:", err);
@@ -3753,7 +3755,7 @@ async function pushLocalChanges() {
 
 async function pullRemoteChanges() {
     // We setup real-time listeners for all collections
-    tableNames.forEach(table => {
+    window.tableNames.forEach(table => {
         firestore.collection(table).onSnapshot(snapshot => {
             snapshot.docChanges().forEach(async (change) => {
                 const data = change.doc.data();
