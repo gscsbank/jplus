@@ -458,6 +458,7 @@ const elements = {
     creditHistoryList: document.getElementById('credit-history-list'),
 
     // Dashboard Components
+    dashStatsGrid: document.querySelector('.grid.grid-cols-4'),
     dashTodaySales: document.getElementById('dash-today-sales'),
     dashCashIn: document.getElementById('dash-cash-in'),
     dashCashOut: document.getElementById('dash-cash-out'),
@@ -587,7 +588,12 @@ const elements = {
     reportFromDate: document.getElementById('report-from-date'),
     reportToDate: document.getElementById('report-to-date'),
     dashClock: document.getElementById('dash-clock'),
-    posClock: document.getElementById('pos-clock')
+    posClock: document.getElementById('pos-clock'),
+
+    // Mobile Elements
+    mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+    sidebarOverlay: document.getElementById('sidebar-overlay'),
+    appSidebar: document.getElementById('app-sidebar'),
 };
 
 // Run initialization - called after successful login
@@ -613,6 +619,8 @@ window.initApp = async () => {
         setupInventoryListeners();
         setupUtilityListeners();
         setupCreditListeners();
+        setupTabListeners();
+        setupPrintListeners();
         setupDashboardListeners();
         setupCashCheckoutListeners();
         setupExpenseListeners();
@@ -620,6 +628,7 @@ window.initApp = async () => {
         setupFeaturePack3Listeners();
         setupBarcodeListeners();
         setupSupplierPaymentListeners();
+        setupMobileNavigation();
 
         // Start Cloud Sync
         if (typeof firebase !== 'undefined') {
@@ -733,12 +742,29 @@ function setupNavigation() {
     });
 
     // Mobile menu toggle
-    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-        const sidebar = document.querySelector('aside');
-        sidebar.classList.toggle('hidden');
-        sidebar.classList.toggle('absolute');
-        sidebar.classList.toggle('z-40');
-        sidebar.classList.toggle('h-full');
+    setupMobileNavigation();
+}
+
+// ---------------- MOBILE NAVIGATION LOGIC ---------------- //
+function setupMobileNavigation() {
+    if (!elements.mobileMenuBtn) return;
+
+    const toggleSidebar = () => {
+        elements.appSidebar.classList.toggle('mobile-active');
+        elements.sidebarOverlay.classList.toggle('active');
+    };
+
+    elements.mobileMenuBtn.addEventListener('click', toggleSidebar);
+    elements.sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // Close sidebar when a nav button is clicked on mobile
+    elements.navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (window.innerWidth <= 640) {
+                elements.appSidebar.classList.remove('mobile-active');
+                elements.sidebarOverlay.classList.remove('active');
+            }
+        });
     });
 }
 
@@ -3590,6 +3616,12 @@ function renderAuditReportToPrint(title, data, from, to) {
     window.print();
     document.body.classList.remove('report-mode');
 }
+const tableNames = [
+    'products', 'sales', 'credits', 'billPayments', 'customers',
+    'cashLogs', 'expenses', 'printJobs', 'suppliers',
+    'supplierTransactions', 'heldBills', 'auditLogs'
+];
+
 // ---------------- CLOUD SYNC ENGINE (Firebase) ---------------- //
 // This engine handles two-way real-time synchronization between Dexie (Local) and Firestore (Cloud)
 
