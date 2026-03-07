@@ -3613,7 +3613,7 @@ function renderAuditReportToPrint(title, data, from, to) {
 // ---------------- CLOUD SYNC ENGINE (Firebase) ---------------- //
 // This engine handles two-way real-time synchronization between Dexie (Local) and Firestore (Cloud)
 
-let lastPushTime = parseInt(localStorage.getItem('jp_last_push_time')) || 0;
+window.lastPushTime = parseInt(localStorage.getItem('jp_last_push_time')) || 0;
 
 async function startCloudSync() {
     console.log("Cloud Sync: Initializing...");
@@ -3684,15 +3684,13 @@ async function pushLocalChanges() {
     isCloudSyncing = true;
 
     try {
-        if (typeof firestore === 'undefined') {
-            console.warn("Cloud Sync: Firestore not initialized yet.");
-            return;
-        }
+        if (typeof firestore === 'undefined') return;
+        if (!window.tableNames) return;
 
         const now = Date.now();
         let hasChanges = false;
 
-        for (const table of tableNames) {
+        for (const table of window.tableNames) {
             // Find records modified since last push
             const changedItems = await db[table].where('lastUpdated').above(lastPushTime).toArray();
 
@@ -3705,13 +3703,13 @@ async function pushLocalChanges() {
                 console.log(`Cloud Sync: Pushing ${changedItems.length} items from ${table}...`);
 
                 for (const item of changedItems) {
-                    // ID must be string for Firestore
-                    if (!item.id) {
-                        console.warn(`Cloud Sync: Item in ${table} missing ID:`, item);
-                        continue;
-                    }
+                    if (!item.id) continue;
                     const docId = item.id.toString();
-                    await firestore.collection(table).doc(docId).set(item, { merge: true });
+
+                    // Firestore cannot handle 'undefined'. We sanitize by converting to JSON and back.
+                    const cleanItem = JSON.parse(JSON.stringify(item));
+
+                    await firestore.collection(table).doc(docId).set(cleanItem, { merge: true });
                 }
             }
         }
@@ -3726,6 +3724,13 @@ async function pushLocalChanges() {
     } catch (err) {
         console.error("Cloud Sync Push Error Detail:", err);
         updateSyncStatus('Offline', 'bg-rose-500');
+
+        // Provide friendly advice for common Firebase setup errors
+        if (err.code === 'permission-denied') {
+            showNotification("Cloud Sync: Permission Denied. Please check your Firebase Rules!", "error");
+        } else if (err.code === 'unimplemented') {
+            // Catch potential version mismatches
+        }
     } finally {
         isCloudSyncing = false;
     }

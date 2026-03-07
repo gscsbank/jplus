@@ -17,4 +17,4 @@ const auth = firebase.auth();
 console.log("Firebase initialized successfully.");
 
 // Persistent cloud sync flag
-let isCloudSyncing = false;
+window.isCloudSyncing = false;

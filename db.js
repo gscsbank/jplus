@@ -28,7 +28,7 @@ db.on('populate', async () => {
 });
 
 // Hooks for automatic timestamping and sync tracking
-const tableNames = [
+window.tableNames = [
     'products', 'sales', 'credits', 'billPayments', 'customers',
     'cashLogs', 'expenses', 'printJobs', 'suppliers',
     'supplierTransactions', 'heldBills', 'auditLogs'
