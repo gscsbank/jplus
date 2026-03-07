@@ -387,14 +387,6 @@ let productsList = [];
 let currentCategory = 'Bookshop';
 let cart = [];
 let pendingCreditCheckout = null;
-let isCloudSyncing = false;
-
-const tableNames = [
-    'products', 'sales', 'credits', 'billPayments', 'customers',
-    'cashLogs', 'expenses', 'printJobs', 'suppliers',
-    'supplierTransactions', 'heldBills', 'auditLogs'
-];
-
 // Global state for Editing Bill (Dashboard)
 let currentEditSaleId = null;
 let currentEditLogId = null;
@@ -3156,11 +3148,7 @@ window.exportDatabase = async function () {
             users: localStorage.getItem('jp_users') ? JSON.parse(localStorage.getItem('jp_users')) : null
         };
 
-        const tableNames = [
-            'products', 'sales', 'credits', 'billPayments', 'customers',
-            'cashLogs', 'expenses', 'printJobs', 'suppliers',
-            'supplierTransactions', 'heldBills', 'auditLogs'
-        ];
+        // uses global tableNames from db.js
 
         for (const table of tableNames) {
             backupData.tables[table] = await db[table].toArray();
