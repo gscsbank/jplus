@@ -3621,24 +3621,56 @@ let lastPushTime = parseInt(localStorage.getItem('jp_last_push_time')) || 0;
 async function startCloudSync() {
     console.log("Cloud Sync: Initializing...");
 
-    // Add a simple UI indicator for sync status
+    // 1. Firebase Auth (Anonymous) - Required for many Firestore security rules
+    try {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            await firebase.auth().signInAnonymously();
+            console.log("Cloud Sync: Authenticated Anonymously.");
+        }
+    } catch (e) {
+        console.error("Cloud Sync Auth Error:", e);
+    }
+
+    // 2. Ensure all existing data has lastUpdated (Migration)
+    await ensureTimestamps();
+
+    // 3. Add UI indicator
     const topBar = document.querySelector('header') || document.querySelector('main');
-    if (topBar) {
+    if (topBar && !document.getElementById('cloud-sync-status')) {
         const syncStatusDiv = document.createElement('div');
         syncStatusDiv.id = 'cloud-sync-status';
-        syncStatusDiv.className = 'fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-100 rounded-full shadow-lg text-[10px] font-bold uppercase tracking-widest text-slate-400 opacity-60 hover:opacity-100 transition-opacity';
+        syncStatusDiv.className = 'fixed bottom-4 right-4 z-[100] flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-100 rounded-full shadow-xl text-[10px] font-black uppercase tracking-widest text-slate-400 opacity-60 hover:opacity-100 transition-all cursor-pointer';
+        syncStatusDiv.title = 'Click to force sync';
+        syncStatusDiv.onclick = () => pushLocalChanges();
         syncStatusDiv.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-300" id="sync-dot"></span> <span id="sync-text">Cloud Sync: Idle</span>`;
         document.body.appendChild(syncStatusDiv);
     }
 
-    // 1. Initial Pull from Cloud (if first time or after long period)
+    // 4. Initial Pull
     await pullRemoteChanges();
 
-    // 2. Start Periodic Push (Dexie -> Firestore)
-    setInterval(pushLocalChanges, 10000); // Check for local changes every 10 seconds
-    pushLocalChanges(); // Also run once now
+    // 5. Periodic Push
+    setInterval(pushLocalChanges, 15000);
+    pushLocalChanges();
 
     console.log("Cloud Sync: Active.");
+}
+
+async function ensureTimestamps() {
+    console.log("Cloud Sync: Checking data timestamps...");
+    for (const table of tableNames) {
+        try {
+            const itemsToUpdate = await db[table].filter(item => !item.lastUpdated).toArray();
+            if (itemsToUpdate.length > 0) {
+                console.log(`Cloud Sync: Adding timestamps to ${itemsToUpdate.length} items in ${table}`);
+                await Promise.all(itemsToUpdate.map(item =>
+                    db[table].update(item.id, { lastUpdated: Date.now() })
+                ));
+            }
+        } catch (e) {
+            console.warn(`Failed migration for table ${table}:`, e);
+        }
+    }
 }
 
 async function updateSyncStatus(status, color = 'bg-amber-500') {
@@ -3655,6 +3687,11 @@ async function pushLocalChanges() {
     isCloudSyncing = true;
 
     try {
+        if (typeof firestore === 'undefined') {
+            console.warn("Cloud Sync: Firestore not initialized yet.");
+            return;
+        }
+
         const now = Date.now();
         let hasChanges = false;
 
@@ -3668,8 +3705,14 @@ async function pushLocalChanges() {
                     updateSyncStatus('Syncing...', 'bg-amber-500');
                 }
 
+                console.log(`Cloud Sync: Pushing ${changedItems.length} items from ${table}...`);
+
                 for (const item of changedItems) {
-                    // Firestore likes strings for IDs if they aren't numbers
+                    // ID must be string for Firestore
+                    if (!item.id) {
+                        console.warn(`Cloud Sync: Item in ${table} missing ID:`, item);
+                        continue;
+                    }
                     const docId = item.id.toString();
                     await firestore.collection(table).doc(docId).set(item, { merge: true });
                 }
@@ -3680,10 +3723,11 @@ async function pushLocalChanges() {
             lastPushTime = now;
             localStorage.setItem('jp_last_push_time', lastPushTime.toString());
             updateSyncStatus('Connected', 'bg-emerald-500');
+            console.log("Cloud Sync: Push completed successfully.");
             setTimeout(() => updateSyncStatus('Idle', 'bg-slate-300'), 2000);
         }
     } catch (err) {
-        console.error("Cloud Sync Push Error:", err);
+        console.error("Cloud Sync Push Error Detail:", err);
         updateSyncStatus('Offline', 'bg-rose-500');
     } finally {
         isCloudSyncing = false;
