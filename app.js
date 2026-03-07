@@ -57,7 +57,7 @@ function setupLoginScreen() {
 
     // Role selector toggle
     const ownerActiveStyle = 'flex:1;padding:10px;border-radius:11px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#6366f1,#7c3aed);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(99,102,241,0.4);transition:all .2s;';
-    const staffInactiveStyle = 'flex:1;padding:10px;border-radius:11px;font-size:13px;font-weight:800;background:transparent;color:rgba(255,255,255,0.45);border:none;cursor:pointer;transition:all .2s;';
+    const staffInactiveStyle = 'flex:1;padding:10px;border-radius:11px;font-size:13px;font-weight:800;background:transparent;color:#94a3b8;border:none;cursor:pointer;transition:all .2s;';
 
     roleOwnerBtn.addEventListener('click', () => {
         selectedRole = 'owner';
@@ -595,7 +595,7 @@ const elements = {
 };
 
 // Run initialization - called after successful login
-const initApp = async () => {
+window.initApp = async () => {
     console.log("App Init: Starting...");
 
     // Start clock immediately so users don't see "Loading time..." if a setup fails
@@ -3733,3 +3733,6 @@ function refreshUIForTable(table) {
             break;
     }
 }
+
+// Initialize the login screen on load
+setupLoginScreen();
