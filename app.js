@@ -619,8 +619,6 @@ window.initApp = async () => {
         setupInventoryListeners();
         setupUtilityListeners();
         setupCreditListeners();
-        setupTabListeners();
-        setupPrintListeners();
         setupDashboardListeners();
         setupCashCheckoutListeners();
         setupExpenseListeners();
@@ -628,7 +626,6 @@ window.initApp = async () => {
         setupFeaturePack3Listeners();
         setupBarcodeListeners();
         setupSupplierPaymentListeners();
-        setupMobileNavigation();
 
         // Start Cloud Sync
         if (typeof firebase !== 'undefined') {
