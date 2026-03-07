@@ -392,6 +392,10 @@ let currentEditSaleId = null;
 let currentEditLogId = null;
 let editSaleItems = [];
 
+// App state locks
+let isProcessingCheckout = false;
+let isAppInitialized = false;
+
 // DOM Elements
 const elements = {
     // Navigation
@@ -588,6 +592,9 @@ const elements = {
 
 // Run initialization - called after successful login
 window.initApp = async () => {
+    if (isAppInitialized) return;
+    isAppInitialized = true;
+
     console.log("App Init: Starting...");
 
     // Start clock immediately so users don't see "Loading time..." if a setup fails
@@ -1308,34 +1315,36 @@ function clearCart() {
 }
 
 async function processCheckout(options) {
-    if (cart.length === 0) {
-        alert("Cart is empty!");
-        return;
-    }
+    if (isProcessingCheckout) return;
+    isProcessingCheckout = true;
 
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const discount = parseFloat(elements.cartDiscount.value) || 0;
-    const total = subtotal - discount;
-    const dateNow = new Date().toISOString();
-
-    // 1. If Credit, fetch current balance to show on receipt
-    if (options.paymentType === 'Credit') {
-        try {
-            const existingCredit = await db.credits.where('customerName').equalsIgnoreCase(options.customerName).first();
-            const currentTotalBalance = existingCredit ? existingCredit.balance : 0;
-            options.newTotalBalance = currentTotalBalance + (total - options.advancePayment);
-        } catch (e) {
-            console.error("Error fetching credit balance for receipt:", e);
-        }
-    }
-
-    // 2. Generate Print Receipt
-    generateReceiptDOM(cart, subtotal, discount, total, options);
-
-    // 2. Perform DB operations
-    let saleId = null;
     try {
-        saleId = await db.transaction('rw', db.sales, db.products, db.credits, db.cashLogs, async () => {
+        if (cart.length === 0) {
+            alert("Cart is empty!");
+            return;
+        }
+
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const discount = parseFloat(elements.cartDiscount.value) || 0;
+        const total = subtotal - discount;
+        const dateNow = new Date().toISOString();
+
+        // 1. If Credit, fetch current balance to show on receipt
+        if (options.paymentType === 'Credit') {
+            try {
+                const existingCredit = await db.credits.where('customerName').equalsIgnoreCase(options.customerName).first();
+                const currentTotalBalance = existingCredit ? existingCredit.balance : 0;
+                options.newTotalBalance = currentTotalBalance + (total - options.advancePayment);
+            } catch (e) {
+                console.error("Error fetching credit balance for receipt:", e);
+            }
+        }
+
+        // 2. Generate Print Receipt
+        generateReceiptDOM(cart, subtotal, discount, total, options);
+
+        // 3. Perform DB operations
+        let saleId = await db.transaction('rw', db.sales, db.products, db.credits, db.cashLogs, async () => {
             // Save sale
             let saleRecord = {
                 date: dateNow,
@@ -1348,9 +1357,7 @@ async function processCheckout(options) {
 
             // Handle Credit specific logic
             if (options.paymentType === 'Credit') {
-                // Create or update credit record
                 const existingCredit = await db.credits.where('customerName').equalsIgnoreCase(options.customerName).first();
-
                 const balanceForThisBill = total - options.advancePayment;
 
                 if (existingCredit) {
@@ -1372,13 +1379,12 @@ async function processCheckout(options) {
                     });
                     saleRecord.customerId = newCreditId;
                 }
-
                 saleRecord.advancePayment = options.advancePayment;
             }
 
             const sid = await db.sales.add(saleRecord);
 
-            // Deduct stock for physical products
+            // Deduct stock
             for (let item of cart) {
                 if (!item.isService) {
                     const p = await db.products.get(item.id);
@@ -1388,7 +1394,7 @@ async function processCheckout(options) {
                 }
             }
 
-            // ADD CASH LOG ENTRY
+            // Cash Log
             if (options.paymentType === 'Cash' || (options.paymentType === 'Credit' && options.advancePayment > 0)) {
                 await db.cashLogs.add({
                     type: 'CASH_IN',
@@ -1400,31 +1406,29 @@ async function processCheckout(options) {
                     performedBy: currentUser.displayName
                 });
             }
-
             return sid;
         });
 
-        // 3. Print
+        // 4. Print
         document.body.classList.add('receipt-mode');
         window.print();
         document.body.classList.remove('receipt-mode');
 
-        // 4. Cleanup
+        // 5. Cleanup
         await loadProducts();
         renderPOSProducts();
-        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-inventory') {
-            renderInventory();
-        }
-        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-credits') {
-            renderCreditsList();
-        }
+        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-inventory') renderInventory();
+        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-credits') renderCreditsList();
+
         clearCart();
         return saleId;
 
     } catch (err) {
-        console.error(err);
+        console.error("Checkout Error:", err);
         alert("Error saving transaction!");
         return null;
+    } finally {
+        isProcessingCheckout = false;
     }
 }
 
