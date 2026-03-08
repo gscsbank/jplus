@@ -139,7 +139,9 @@ aside.w-64 {
     body>main,
     #main-app,
     #login-screen,
-    .modal {
+    .modal,
+    #cloud-sync-status,
+    #toast-container {
         display: none !important;
     }
 

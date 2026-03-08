@@ -2460,23 +2460,87 @@ elements.btnSaveEditSale.addEventListener('click', () => saveEditedSale(false));
 elements.btnSavePrintSale.addEventListener('click', () => saveEditedSale(true));
 
 window.deleteActivity = async function (id) {
-    const confirmed = await showConfirm("Delete Activity?", "Are you sure you want to delete this activity log? This will NOT delete the actual sale or expense record.");
+    const confirmed = await showConfirm("Delete Transaction?", "Are you sure? This will delete the transaction and reverse its effects on stock, credits, and reports.");
     if (!confirmed) return;
 
     try {
         const log = await db.cashLogs.get(id);
-        if (log) {
-            await logAuditAction("DELETE_ACTIVITY", `Deleted Activity #${id} (${log.type} - Rs. ${log.amount}: ${log.reason})`);
+        if (!log) return;
+
+        // Source Record Cleanup & Reversal
+        if (log.refTable && log.refId) {
+            const rid = parseInt(log.refId);
+
+            if (log.refTable === 'sales') {
+                const sale = await db.sales.get(rid);
+                if (sale) {
+                    // Reverse Stock
+                    for (const item of sale.items) {
+                        if (!item.isService) {
+                            const p = await db.products.get(item.id);
+                            if (p) await db.products.update(item.id, { stock: p.stock + item.qty });
+                        }
+                    }
+                    // Adjust Credit if applicable
+                    if (sale.paymentType === 'Credit' && sale.customerId) {
+                        const credit = await db.credits.get(sale.customerId);
+                        if (credit) {
+                            await db.credits.update(credit.id, {
+                                totalAmount: Math.max(0, credit.totalAmount - sale.total),
+                                paidAmount: Math.max(0, credit.paidAmount - (sale.advancePayment || 0)),
+                                balance: Math.max(0, credit.balance - (sale.total - (sale.advancePayment || 0)))
+                            });
+                        }
+                    }
+                    await db.sales.delete(rid);
+                    if (typeof syncDelete === 'function') await syncDelete('sales', rid);
+                }
+            } else if (log.refTable === 'expenses') {
+                await db.expenses.delete(rid);
+                if (typeof syncDelete === 'function') await syncDelete('expenses', rid);
+            } else if (log.refTable === 'credits') {
+                // This is a debt payment
+                const credit = await db.credits.get(rid);
+                if (credit) {
+                    await db.credits.update(rid, {
+                        paidAmount: Math.max(0, credit.paidAmount - log.amount),
+                        balance: credit.balance + log.amount
+                    });
+                }
+            } else if (log.refTable === 'billPayments') {
+                await db.billPayments.delete(rid);
+                if (typeof syncDelete === 'function') await syncDelete('billPayments', rid);
+            } else if (log.refTable === 'supplierTransactions') {
+                const trans = await db.supplierTransactions.get(rid);
+                if (trans) {
+                    const supplier = await db.suppliers.get(trans.supplierId);
+                    if (supplier) {
+                        await db.suppliers.update(supplier.id, {
+                            totalDue: supplier.totalDue + trans.amount
+                        });
+                    }
+                    await db.supplierTransactions.delete(rid);
+                    if (typeof syncDelete === 'function') await syncDelete('supplierTransactions', rid);
+                }
+            }
         }
+
+        await logAuditAction("DELETE_ACTIVITY", `Deleted Activity #${id} (${log.type} - Rs. ${log.amount}: ${log.reason})`);
         await db.cashLogs.delete(id);
-        // Sync deletion to cloud
         if (typeof syncDelete === 'function') await syncDelete('cashLogs', id);
 
+        // Refresh All Relevant UI
         renderDashboard();
+        await loadProducts(); // Reload stock into memory
+        renderPOSProducts();
         if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-recent-activity') renderRecentActivityTab();
+        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-inventory') renderInventory();
+        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-credits') renderCreditsList();
+        if (document.querySelector('.tab-pane:not(.hidden)').id === 'tab-suppliers') renderSuppliers();
+
     } catch (err) {
         console.error(err);
-        alert("Failed to delete activity.");
+        alert("Failed to delete activity and related records.");
     }
 }
 
@@ -3084,7 +3148,7 @@ function setupSupplierPaymentListeners() {
         await db.suppliers.put(supplier);
 
         // Record Transaction
-        await db.supplierTransactions.add({
+        const transId = await db.supplierTransactions.add({
             supplierId: supplier.id,
             date: new Date().toISOString(),
             type: 'PAYMENT',
@@ -3099,6 +3163,8 @@ function setupSupplierPaymentListeners() {
                 amount: amount,
                 reason: `Supplier Payment: ${supplier.name}`,
                 date: new Date().toISOString(),
+                refId: transId,
+                refTable: 'supplierTransactions',
                 performedBy: currentUser.displayName
             });
         }
