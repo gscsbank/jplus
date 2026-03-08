@@ -3252,6 +3252,57 @@ window.showConfirm = function (title, message) {
         btnNo.addEventListener('click', handleNo);
     });
 };
+window.resetSystem = async function () {
+    if (currentUser.role !== 'owner') {
+        return showNotification("Access Denied: Only owners can reset the system.", "error");
+    }
+
+    const firstConfirm = await showConfirm(
+        "DANGER: Reset System?",
+        "This will PERMANENTLY delete all sales, products, expenses, and logs. This cannot be undone! Are you sure?"
+    );
+    if (!firstConfirm) return;
+
+    // Password Verification
+    const password = prompt("IMPORTANT: Enter your current login password to authorize this reset:");
+    if (!password) return;
+
+    // Check against local storage (where users are stored in this app variant)
+    const storedUsers = JSON.parse(localStorage.getItem('jp_users') || '[]');
+    const userMatch = storedUsers.find(u => u.username === currentUser.username && u.password === password);
+
+    if (!userMatch) {
+        return showNotification("Invalid password. Reset cancelled.", "error");
+    }
+
+    const finalConfirm = await showConfirm(
+        "FINAL STAGE: Clear All Data?",
+        "This is your last chance. Every record will be wiped. Proceed?"
+    );
+    if (!finalConfirm) return;
+
+    try {
+        showNotification("Wiping data... please wait.", "success");
+
+        for (const table of window.tableNames) {
+            await db[table].clear();
+            // Note: If syncDelete is available, we could sync deletions, 
+            // but for a full factory reset, it's often better to let the user clear Firestore manually 
+            // or we'd need a bulk-delete function.
+        }
+
+        // Add back default products if needed (or let user start truly empty)
+        // For now, we'll just reload.
+
+        showNotification("System Reset Complete! Reloading...", "success");
+        setTimeout(() => window.location.reload(), 2000);
+
+    } catch (err) {
+        console.error("Reset Error:", err);
+        showNotification("An error occurred during reset.", "error");
+    }
+}
+
 // ---------------- BACKUP & RESTORE SYSTEM ---------------- //
 window.exportDatabase = async function () {
     try {
