@@ -3216,6 +3216,50 @@ window.showNotification = function (message, type = 'success') {
     });
 };
 
+// CUSTOM PASSWORD PROMPT SYSTEM
+window.showPasswordPrompt = function (title, message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('password-verify-modal');
+        const titleEl = document.getElementById('pv-modal-title');
+        const messageEl = document.getElementById('pv-modal-message');
+        const input = document.getElementById('pv-password-input');
+        const btnConfirm = document.getElementById('btn-pv-confirm');
+        const btnCancel = document.getElementById('btn-pv-cancel');
+
+        titleEl.textContent = title || "Verify Identity";
+        messageEl.textContent = message || "Enter your password to authorize this action.";
+        input.value = '';
+        modal.classList.remove('hidden');
+        input.focus();
+
+        const cleanup = () => {
+            modal.classList.add('hidden');
+            btnConfirm.removeEventListener('click', handleConfirm);
+            btnCancel.removeEventListener('click', handleCancel);
+            input.removeEventListener('keypress', handleKey);
+        };
+
+        const handleConfirm = () => {
+            const val = input.value;
+            cleanup();
+            resolve(val);
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        const handleKey = (e) => {
+            if (e.key === 'Enter') handleConfirm();
+        };
+
+        btnConfirm.addEventListener('click', handleConfirm);
+        btnCancel.addEventListener('click', handleCancel);
+        input.addEventListener('keypress', handleKey);
+    });
+};
+
 // PREMIUM CONFIRMATION MODAL SYSTEM
 window.showConfirm = function (title, message) {
     return new Promise((resolve) => {
@@ -3263,15 +3307,17 @@ window.resetSystem = async function () {
     );
     if (!firstConfirm) return;
 
-    // Password Verification
-    const password = prompt("IMPORTANT: Enter your current login password to authorize this reset:");
+    // Premium Password Verification
+    const password = await showPasswordPrompt(
+        "Authorize Reset",
+        "Enter your OWNER password to confirm system wipe."
+    );
     if (!password) return;
 
-    // Check against local storage (where users are stored in this app variant)
-    const storedUsers = JSON.parse(localStorage.getItem('jp_users') || '[]');
-    const userMatch = storedUsers.find(u => u.username === currentUser.username && u.password === password);
+    // Correct verification logic: restricted to owner
+    const isCorrect = (password === USERS.owner.password);
 
-    if (!userMatch) {
+    if (!isCorrect) {
         return showNotification("Invalid password. Reset cancelled.", "error");
     }
 
